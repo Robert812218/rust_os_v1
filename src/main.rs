@@ -13,25 +13,18 @@ pub extern "C" fn _start() -> ! {
 
     rust_os_v1::init();
 
-    fn stack_overflow() {
-        stack_overflow();
-    }
-
     #[cfg(test)]
     test_main();
 
     println!("It did not crash!");
-    loop {
-        use rust_os_v1::print;
-        print!("-");
-    }
+    rust_os_v1::hlt_loop();
 }
 
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    rust_os_v1::hlt_loop();
 }
 
 #[cfg(test)]
