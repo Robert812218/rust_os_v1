@@ -64,6 +64,12 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
     loop {}
 }
 
+pub fn hlt_loop() -> {
+    loop {
+        x86_64::instructions::hlt();
+    }
+}
+
 /// Entry point for `cargo test`
 #[cfg(test)]
 #[no_mangle]
@@ -71,12 +77,16 @@ pub extern "C" fn _start() -> ! {
     init();
     test_main();
     loop {}
+
+    println!("It did not crash!");
+    rust_os_v1::hlt_loop();
 }
 
 #[cfg(test)]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     test_panic_handler(info)
+    rust_os_v1::hlt_loop();
 }
 
 

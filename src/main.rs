@@ -21,7 +21,10 @@ pub extern "C" fn _start() -> ! {
     test_main();
 
     println!("It did not crash!");
-    loop {}
+    loop {
+        use rust_os_v1::print;
+        print!("-");
+    }
 }
 
 #[cfg(not(test))]
