@@ -16,13 +16,13 @@ harness = false
 [profile.release]
 
 [dependencies]
-bootloader = "0.9.23"
 volatile = "0.2.6"
 spin = "0.5.2"
 x86_64 = "0.14.2"
 uart_16550 = "0.2.0"
 pic8259 = "0.10.1"
 pc-keyboard = "0.5.0"
+bootloader = { version = "0.9.8", features = ["map_physical_memory"]}
 
 [dependencies.lazy_static]
 version = "1.0"
