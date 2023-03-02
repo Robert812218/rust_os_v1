@@ -85,3 +85,35 @@ pub extern "C" fn _start() -> ! {
 fn panic(info: &PanicInfo) -> ! {
     test_panic_handler(info)
 }
+
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    use rust_os_v1::memory::active_level_4_table;
+    use x86_64::VirtAddr;
+
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let 14_table = unsafe { active_level_4_table(phys_mem_offset) };
+
+    for (i, entry) in 14_table.iter().enumerate() {
+        if !entry.is_unused() {
+            println!("L4 Entry: {}: {:?}", i, entry);
+
+            let phys = entry.frame().unwrap().start_address();
+            let virt = phys.as_u64() + boot_info.physical_memory_offset;
+            let ptr = VirtAddr::new(virt).as_mut_ptr();
+            let l3_table: &PageTable = unsafe { &*ptr };
+
+            for (i, entry) in l3_table.iter.enumerate() {
+                if !entry.is_unused() {
+                    println!("  L3 Entry {}: {:?}", i, entry);
+                }
+            }
+        }
+    }
+
+    #[cfg(test)]
+    test_main();
+
+
+    println!("Hello World{}", "!");
+    rust_os
+}

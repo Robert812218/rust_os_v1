@@ -2,6 +2,7 @@ use x86_64::{
     structures::paging::PageTable,
     VirtAddr,
 };
+use x86_64::PhysAddr;
 
 pub unsafe fn active_level_4_table(physical_memory_offset: VirtAddr) -> &'static mut PageTable {
     use x86_64::registers::control::Cr3;
@@ -14,3 +15,8 @@ pub unsafe fn active_level_4_table(physical_memory_offset: VirtAddr) -> &'static
 
     &mut *page_table_ptr
 }
+
+pub unsafe fn translate_addr(addr: VirtAddr, physical_memory_offset: VirtAddr) -> Option<PhysAddr> {
+    translate_addr_inner(addr, physical_memory_offset)
+}
+
