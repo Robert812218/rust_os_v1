@@ -69,6 +69,15 @@ fn panic(info: &PanicInfo) -> ! {
     rust_os_v1::test_panic_handler(info)
 }
 
+async fn async_number() -> u32 {
+    42
+}
+
+async fn example_task() {
+    let number = async_number().await;
+    println!("async number: {}", number);
+}
+
 #[test_case]
 fn trivial_assertion() {
     assert_eq!(1, 1);
