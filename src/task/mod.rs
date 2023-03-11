@@ -1,5 +1,14 @@
-use core::{future::Future, pin::Pin};
 use alloc::boxed::Box;
+use core::{
+    future::Future,
+    pin::Pin,
+    sync::atomic::{AtomicU64, Ordering},
+    task::{Context, Poll},
+};
+
+pub mod executor;
+pub mod simple_executor;
+pub mod keyboard;
 
 pub struct Task {
     future: Pin<Box<dyn Future<Output = ()>>>,
@@ -10,5 +19,21 @@ impl Task {
         Task {
             future: Box::pin(future),
         }
+    }
+
+    fn poll(&mut self, context: &mut Context) -> Poll<()> {
+        self.future.as_mut().poll(context)
+    }
+}
+
+impl SimpleExecutor {
+    pub fn new() -> SimpleExecutor {
+        SimpleExecutor {
+            task_queue: VecDeque::new(),
+        }
+    }
+
+    pub spawn(&mut self, task: Task) {
+        self.task_queue.push_back(task)
     }
 }

@@ -8,6 +8,7 @@ extern crate alloc;
 
 use alloc::{boxed::Box, vec, vec::Vec, rc::Rc};
 use rust_os_v1::println;
+use rust_os_v1::task::{Task, simple_executor::SimpleExecutor};
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 
@@ -51,6 +52,11 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     #[cfg(test)]
     test_main();
+
+    let mut executor = Executor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.spawn(Task::new(keyboard::print_keypresses()));
+    executor.run();
 
     println!("It did not crash!");
     rust_os_v1::hlt_loop();
