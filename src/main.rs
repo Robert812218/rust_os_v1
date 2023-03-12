@@ -6,9 +6,8 @@
 
 extern crate alloc;
 
-use alloc::{boxed::Box, vec, vec::Vec, rc::Rc};
 use rust_os_v1::println;
-use rust_os_v1::task::{Task, simple_executor::SimpleExecutor};
+use rust_os_v1::task::{executor::Executor, keyboard, Task};
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 
@@ -17,7 +16,7 @@ entry_point!(kernel_main);
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
     use rust_os_v1::allocator;
     use rust_os_v1::memory::{self, BootInfoFrameAllocator};
-    use x86_64::{structures::paging::Page, VirtAddr};
+    use x86_64::VirtAddr;
 
     println!("Hello World{}", "!");
     rust_os_v1::init();
@@ -26,29 +25,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     let mut mapper = unsafe { memory::init(phys_mem_offset) };
     let mut frame_allocator = unsafe { BootInfoFrameAllocator::init(&boot_info.memory_map) };
 
-    allocator::init_heap(&mut mapper, &mut frame_allocator)
-        .expect("heap initialization failed");
-
-    let page = Page::containing_address(VirtAddr::new(0xdeadbeaf000));
-    memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
-
-    let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
-    unsafe { page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e) };
-
-    let heap_value = Box::new(41);
-    println!("heap_value at {:p}", heap_value);
-
-    let mut vec = Vec::new();
-    for i in 0..500 {
-        vec.push(i);
-    }
-    println!("vec at {:p}", vec.as_slice());
-
-    let reference_counted = Rc::new(vec![1, 2, 3]);
-    let cloned_reference = reference_counted.clone();
-    println!("current reference count is {}", Rc::strong_count(&cloned_reference));
-    core::mem::drop(reference_counted);
-    println!("reference count is {} now", Rc::strong_count(&cloned_reference));
+    allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap initialization failed");
 
     #[cfg(test)]
     test_main();
@@ -57,11 +34,9 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     executor.spawn(Task::new(example_task()));
     executor.spawn(Task::new(keyboard::print_keypresses()));
     executor.run();
-
-    println!("It did not crash!");
-    rust_os_v1::hlt_loop();
 }
 
+/// This function is called on panic.
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
